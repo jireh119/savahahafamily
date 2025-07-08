@@ -1,4 +1,4 @@
-content = // ========== Haha Family Defense – FULL GAME LOGIC ==========
+// ========== Haha Family Defense – FULL GAME LOGIC ==========
 // 10단계 × 20단어 = 200단어 세트 (영↔한)
 const STAGES = [
   /* ---------- Stage 1 ---------- */.
