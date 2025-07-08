@@ -65,7 +65,11 @@ const STAGES = [
     {en:"sunny",ko:"맑은"},{en:"rainy",ko:"비오는"},{en:"cloudy",ko:"흐린"},{en:"snowy",ko:"눈오는"},{en:"windy",ko:"바람부는"}
   ],
   /* ---------- Stage 10 ---------- */
-  [
+[
     {en:"phone",ko:"전화기"},{en:"toy",ko:"장난감"},{en:"picture",ko:"그림"},{en:"key",ko:"열쇠"},
     {en:"box",ko:"상자"},{en:"gift",ko:"선물"},{en:"money",ko:"돈"},{en:"card",ko:"카드"},
-    {en:"ticket",
+    {en:"ticket",ko:"티켓"},{en:"music",ko:"음악"},{en:"movie",ko:"영화"},{en:"game",ko:"게임"},
+    {en:"idea",ko:"아이디어"},{en:"love",ko:"사랑"},{en:"ride",ko:"타다"},{en:"open",ko:"열다"},
+    {en:"close",ko:"닫다"},{en:"wait",ko:"기다리다"},{en:"think",ko:"생각하다"},{en:"learn",ko:"배우다"}
+  ]
+];
