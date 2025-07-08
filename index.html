@@ -4,27 +4,148 @@
   <meta charset="UTF-8">
   <title>Haha Family Defense</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; }
-    #game-screen, #end-screen { display: none; flex-direction: column; align-items: center; }
-    .option-btn { margin: 10px; padding: 10px 20px; font-size: 16px; }
-    .correct { background-color: #aaf; }
-    .wrong { background-color: #f88; }
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f0f8ff; /* 연한 하늘색 배경 */
+      color: #333;
+    }
+    #start-screen, #game-screen, #end-screen {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      margin: 20px auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 600px;
+      display: none; /* 기본적으로 숨김 */
+      flex-direction: column;
+      align-items: center;
+    }
+    #start-screen { display: flex; } /* 시작 화면만 처음에 보여줌 */
+
+    h1, h2, h3 { color: #2c3e50; }
+
+    #name-input {
+      padding: 10px;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      width: 80%;
+      max-width: 300px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.3s ease;
+      margin: 5px;
+    }
+    button:hover { background-color: #45a049; }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .option-btn {
+      background-color: #007bff;
+      width: calc(50% - 20px); /* 두 개씩 정렬 */
+      box-sizing: border-box;
+    }
+    .option-btn:hover { background-color: #0056b3; }
+
+    .correct { background-color: #28a745 !important; } /* 초록색 */
+    .wrong { background-color: #dc3545 !important; }   /* 빨간색 */
+
+    #question {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 25px 0;
+      color: #34495e;
+    }
+
+    #options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    #house-status {
+      margin-top: 30px;
+      font-size: 28px;
+      min-height: 50px; /* 텍스트 공간 확보 */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #enemy-attack {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 1.2em;
+    }
+
+    #family-photo-container {
+      width: 150px;
+      height: 150px;
+      border: 3px solid #f39c12;
+      border-radius: 10px;
+      margin: 20px auto;
+      overflow: hidden;
+      background-color: #ecf0f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #family-photo {
+        max-width: 100%;
+        max-height: 100%;
+        display: block; /* 이미지 하단 여백 제거 */
+    }
+
+    #scoreboard-table {
+      width: 80%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    #scoreboard-table th, #scoreboard-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    #scoreboard-table th {
+      background-color: #f2f2f2;
+      color: #555;
+    }
   </style>
 </head>
 <body>
 
   <div id="start-screen">
-    <h1>Haha Family Defense</h1>
-    <input id="name-input" type="text" placeholder="이름을 입력하세요" />
+    <h1>하하 패밀리를 지켜라!</h1>
+    <p>우리 가족을 지키기 위해 영단어 퀴즈를 맞춰보자!</p>
+    <input id="name-input" type="text" placeholder="이름을 입력하세요" maxlength="10"/>
     <br><br>
     <button id="start-btn">게임 시작</button>
   </div>
 
   <div id="game-screen">
     <h2 id="stage-info">Stage</h2>
+    <div id="family-photo-container">
+        <img id="family-photo" src="family.jpg" alt="우리 가족" style="display: none;">
+        <span id="photo-placeholder">가족 사진 준비 중...</span>
+    </div>
     <div id="question" style="font-size: 24px; margin: 20px 0;"></div>
     <div id="options"></div>
     <div id="house-status" style="margin-top: 20px; font-size: 20px;"></div>
+    <div id="enemy-attack" style="margin-top: 10px; font-size: 18px;"></div>
   </div>
 
   <div id="end-screen">
