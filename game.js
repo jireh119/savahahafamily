@@ -1,7 +1,7 @@
-content = """// ========== Haha Family Defense – FULL GAME LOGIC ==========
+content = // ========== Haha Family Defense – FULL GAME LOGIC ==========
 // 10단계 × 20단어 = 200단어 세트 (영↔한)
 const STAGES = [
-  /* ---------- Stage 1 ---------- */
+  /* ---------- Stage 1 ---------- */.
   [
     {en:"cat",ko:"고양이"},{en:"dog",ko:"개"},{en:"bird",ko:"새"},{en:"fish",ko:"물고기"},{en:"ant",ko:"개미"},
     {en:"bee",ko:"벌"},{en:"pig",ko:"돼지"},{en:"cow",ko:"소"},{en:"duck",ko:"오리"},{en:"hen",ko:"암탉"},
@@ -73,3 +73,73 @@ const STAGES = [
     {en:"close",ko:"닫다"},{en:"wait",ko:"기다리다"},{en:"think",ko:"생각하다"},{en:"learn",ko:"배우다"}
   ]
 ];
+
+const DARK_POKEMON = ["Umbreon","Darkrai","Honchkrow","Tyranitar"];
+
+const $ = sel => document.querySelector(sel);
+const shuffle = arr => [...arr].sort(()=>Math.random()-0.5);
+
+let userName = "", stage = 0, index = 0, lives = 5;
+
+$("#start-btn").onclick = () => {
+  userName = $("#name-input").value.trim() || "Player";
+  $("#start-screen").style.display = "none";
+  $("#game-screen").style.display  = "flex";
+  stage = 0; index = 0; lives = 5;
+  nextQuestion();
+};
+
+function nextQuestion(){
+  if(lives<=0){ return gameOver(); }
+  if(index>=20){ stage++; index=0; if(stage>=10) return victory(); }
+  const item = STAGES[stage][index];
+  $("#stage-info").textContent = `Stage ${stage+1} (문제 ${index+1}/20)`;
+  $("#question").textContent = `"${item.en}" 뜻은?`;
+  $("#house-status").textContent = "🏠".repeat(lives);
+  renderOptions(item);
+}
+
+function renderOptions(correct){
+  const opts = shuffle([correct, ...shuffle(STAGES.flat()).filter(o=>o!==correct).slice(0,3)]);
+  $("#options").innerHTML = "";
+  opts.forEach(o=>{
+    const btn=document.createElement("button");
+    btn.className="option-btn"; btn.textContent=o.ko;
+    btn.onclick=()=>checkAnswer(o===correct,btn);
+    $("#options").append(btn);
+  });
+}
+
+function checkAnswer(ok,btn){
+  btn.classList.add(ok?"correct":"wrong");
+  if(!ok) { lives--; $("#house-status").textContent="🏠".repeat(lives)+"\n"+DARK_POKEMON[Math.floor(Math.random()*DARK_POKEMON.length)]+"의 공격!"; }
+  setTimeout(()=>{ index++; nextQuestion(); },700);
+}
+
+function gameOver(){
+  $("#game-screen").style.display="none";
+  $("#end-screen").style.display="flex";
+  $("#final-msg").textContent=`${userName} 님 탈락! 도달 단계: ${stage+1}, 맞힌 개수: ${index}`;
+  saveScore(userName,stage,index);
+  showScoreboard();
+}
+function victory(){
+  $("#game-screen").style.display="none";
+  $("#end-screen").style.display="flex";
+  $("#final-msg").textContent=`축하합니다 ${userName} 님! 10단계 클리어 🎉`;
+  saveScore(userName,9,20);
+  showScoreboard();
+}
+
+function saveScore(nm,st,sc){
+  const data=JSON.parse(localStorage.hahaScores||"[]");
+  data.push({nm,st,sc,ts:Date.now()});
+  localStorage.hahaScores=JSON.stringify(data.slice(-15)); // 최근 15개만 저장
+}
+function showScoreboard(){
+  const tb=$("#scoreboard-table"); tb.innerHTML="<tr><th>이름</th><th>단계</th><th>맞힌수</th></tr>";
+  JSON.parse(localStorage.hahaScores||"[]").reverse().forEach(r=>{
+    tb.insertRow(-1).innerHTML=`<td>${r.nm}</td><td>${r.st+1}</td><td>${r.sc}</td>`;
+  });
+}
+$("#restart-btn").onclick=()=>location.reload();
