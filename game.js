@@ -1,7 +1,7 @@
 // ========== Haha Family Defense – FULL GAME LOGIC ==========
 // 10단계 × 20단어 = 200단어 세트 (영↔한)
 const STAGES = [
-  /* ---------- Stage 1 ---------- */.
+  /* ---------- Stage 1 ---------- */
   [
     {en:"cat",ko:"고양이"},{en:"dog",ko:"개"},{en:"bird",ko:"새"},{en:"fish",ko:"물고기"},{en:"ant",ko:"개미"},
     {en:"bee",ko:"벌"},{en:"pig",ko:"돼지"},{en:"cow",ko:"소"},{en:"duck",ko:"오리"},{en:"hen",ko:"암탉"},
@@ -25,7 +25,7 @@ const STAGES = [
   /* ---------- Stage 4 ---------- */
   [
     {en:"rice",ko:"밥"},{en:"bread",ko:"빵"},{en:"soup",ko:"수프"},{en:"meat",ko:"고기"},{en:"chicken",ko:"닭고기"},
-    {en:"apple",ko:"사과"},{en:"banana",ko:"바나나"},{en:"grape",ko:"포도"},{en:"orangefruit",ko:"오렌지"},{en:"lemon",ko:"레몬"},
+    {en:"apple",ko:"사과"},{en:"banana",ko:"바나나"},{en:"grape",ko:"포도"},{en:"orange",ko:"오렌지"},{en:"lemon",ko:"레몬"},
     {en:"carrot",ko:"당근"},{en:"potato",ko:"감자"},{en:"tomato",ko:"토마토"},{en:"corn",ko:"옥수수"},{en:"water",ko:"물"},
     {en:"juice",ko:"주스"},{en:"tea",ko:"차"},{en:"soda",ko:"탄산음료"},{en:"sugar",ko:"설탕"},{en:"salt",ko:"소금"}
   ],
@@ -53,8 +53,8 @@ const STAGES = [
   /* ---------- Stage 8 ---------- */
   [
     {en:"home",ko:"집"},{en:"park",ko:"공원"},{en:"zoo",ko:"동물원"},{en:"farm",ko:"농장"},{en:"bank",ko:"은행"},
-    {en:"hospital",ko:"병원"},{en:"store",ko:"가게"},{en:"market",ko:"시장"},{en:"church",ko:"교회"},{en:"post",ko:"우체국"},
-    {en:"airport",ko:"공항"},{en:"bus",ko:"버스정류장"},{en:"station",ko:"역"},{en:"street",ko:"거리"},{en:"road",ko:"도로"},
+    {en:"hospital",ko:"병원"},{en:"store",ko:"가게"},{en:"market",ko:"시장"},{en:"church",ko:"교회"},{en:"post office",ko:"우체국"},
+    {en:"airport",ko:"공항"},{en:"bus",ko:"버스"},{en:"station",ko:"역"},{en:"street",ko:"거리"},{en:"road",ko:"도로"},
     {en:"bridge",ko:"다리"},{en:"river",ko:"강"},{en:"mountain",ko:"산"},{en:"beach",ko:"해변"},{en:"playground",ko:"놀이터"}
   ],
   /* ---------- Stage 9 ---------- */
@@ -65,7 +65,7 @@ const STAGES = [
     {en:"sunny",ko:"맑은"},{en:"rainy",ko:"비오는"},{en:"cloudy",ko:"흐린"},{en:"snowy",ko:"눈오는"},{en:"windy",ko:"바람부는"}
   ],
   /* ---------- Stage 10 ---------- */
-[
+  [
     {en:"phone",ko:"전화기"},{en:"toy",ko:"장난감"},{en:"picture",ko:"그림"},{en:"key",ko:"열쇠"},
     {en:"box",ko:"상자"},{en:"gift",ko:"선물"},{en:"money",ko:"돈"},{en:"card",ko:"카드"},
     {en:"ticket",ko:"티켓"},{en:"music",ko:"음악"},{en:"movie",ko:"영화"},{en:"game",ko:"게임"},
@@ -74,72 +74,167 @@ const STAGES = [
   ]
 ];
 
-const DARK_POKEMON = ["Umbreon","Darkrai","Honchkrow","Tyranitar"];
+// Dark Type Pokemon (악 타입 포켓몬) 이름 (이미지 파일명과 연동 가능)
+const DARK_POKEMON_NAMES = ["블래키", "다크라이", "돈크로우", "마기라스"];
 
 const $ = sel => document.querySelector(sel);
-const shuffle = arr => [...arr].sort(()=>Math.random()-0.5);
+const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
 
-let userName = "", stage = 0, index = 0, lives = 5;
+let userName = "", stage = 0, currentQuestionIndex = 0, lives = 5;
 
-$("#start-btn").onclick = () => {
-  userName = $("#name-input").value.trim() || "Player";
-  $("#start-screen").style.display = "none";
-  $("#game-screen").style.display  = "flex";
-  stage = 0; index = 0; lives = 5;
-  nextQuestion();
+// DOM Elements
+const startScreen = $("#start-screen");
+const gameScreen = $("#game-screen");
+const endScreen = $("#end-screen");
+const nameInput = $("#name-input");
+const startBtn = $("#start-btn");
+const stageInfo = $("#stage-info");
+const questionText = $("#question");
+const optionsContainer = $("#options");
+const houseStatus = $("#house-status");
+const enemyAttackDisplay = $("#enemy-attack");
+const finalMessage = $("#final-msg");
+const scoreboardTable = $("#scoreboard-table");
+const restartBtn = $("#restart-btn");
+const familyPhoto = $("#family-photo");
+const photoPlaceholder = $("#photo-placeholder");
+
+// Game Start Handler
+startBtn.onclick = () => {
+    userName = nameInput.value.trim();
+    if (userName.length === 0) {
+        userName = "용감한 친구"; // 이름 미입력 시 기본값
+    }
+    startScreen.style.display = "none";
+    gameScreen.style.display = "flex";
+    
+    // 게임 변수 초기화
+    stage = 0;
+    currentQuestionIndex = 0;
+    lives = 5;
+    enemyAttackDisplay.textContent = ""; // 공격 메시지 초기화
+    
+    // 가족 사진 표시
+    familyPhoto.style.display = "block"; // 이미지 보이게
+    photoPlaceholder.style.display = "none"; // 플레이스홀더 숨김
+
+    nextQuestion();
 };
 
-function nextQuestion(){
-  if(lives<=0){ return gameOver(); }
-  if(index>=20){ stage++; index=0; if(stage>=10) return victory(); }
-  const item = STAGES[stage][index];
-  $("#stage-info").textContent = `Stage ${stage+1} (문제 ${index+1}/20)`;
-  $("#question").textContent = `"${item.en}" 뜻은?`;
-  $("#house-status").textContent = "🏠".repeat(lives);
-  renderOptions(item);
+function nextQuestion() {
+    // 목숨이 0 이하면 게임 오버
+    if (lives <= 0) {
+        return gameOver();
+    }
+
+    // 현재 스테이지 20문제를 모두 맞췄으면 다음 스테이지로
+    if (currentQuestionIndex >= 20) {
+        stage++;
+        currentQuestionIndex = 0;
+        // 10단계를 모두 클리어했으면 승리
+        if (stage >= 10) {
+            return victory();
+        }
+    }
+
+    const currentStageWords = STAGES[stage];
+    const item = currentStageWords[currentQuestionIndex];
+
+    stageInfo.textContent = `Stage ${stage + 1} (문제 ${currentQuestionIndex + 1}/20)`;
+    questionText.textContent = `"${item.en}" 뜻은?`;
+    houseStatus.textContent = "🏠".repeat(lives); // 남은 기회 집 아이콘으로 표시
+    enemyAttackDisplay.textContent = ""; // 이전 공격 메시지 지우기
+
+    renderOptions(item);
 }
 
-function renderOptions(correct){
-  const opts = shuffle([correct, ...shuffle(STAGES.flat()).filter(o=>o!==correct).slice(0,3)]);
-  $("#options").innerHTML = "";
-  opts.forEach(o=>{
-    const btn=document.createElement("button");
-    btn.className="option-btn"; btn.textContent=o.ko;
-    btn.onclick=()=>checkAnswer(o===correct,btn);
-    $("#options").append(btn);
-  });
+function renderOptions(correctItem) {
+    // 오답 보기를 현재 스테이지의 단어들에서 가져오도록 수정
+    const incorrectOptionsPool = STAGES[stage].filter(o => o !== correctItem);
+    const shuffledIncorrect = shuffle(incorrectOptionsPool).slice(0, 3);
+    
+    // 정답과 오답 섞어서 보기 생성
+    const options = shuffle([correctItem, ...shuffledIncorrect]);
+
+    optionsContainer.innerHTML = "";
+    options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = option.ko;
+        btn.onclick = () => checkAnswer(option === correctItem, btn);
+        optionsContainer.append(btn);
+    });
 }
 
-function checkAnswer(ok,btn){
-  btn.classList.add(ok?"correct":"wrong");
-  if(!ok) { lives--; $("#house-status").textContent="🏠".repeat(lives)+"\n"+DARK_POKEMON[Math.floor(Math.random()*DARK_POKEMON.length)]+"의 공격!"; }
-  setTimeout(()=>{ index++; nextQuestion(); },700);
+function checkAnswer(isCorrect, clickedButton) {
+    // 모든 버튼 비활성화 (중복 클릭 방지)
+    Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+
+    if (isCorrect) {
+        clickedButton.classList.add("correct");
+        enemyAttackDisplay.style.color = "#28a745"; // 초록색으로 변경
+        enemyAttackDisplay.textContent = "👍 정답입니다! 가족을 지켰어요!";
+    } else {
+        clickedButton.classList.add("wrong");
+        lives--;
+        houseStatus.textContent = "🏠".repeat(lives); // 남은 기회 업데이트
+        
+        // 악 타입 포켓몬 공격 메시지
+        const randomPokemonIndex = Math.floor(Math.random() * DARK_POKEMON_NAMES.length);
+        const attackingPokemonName = DARK_POKEMON_NAMES[randomPokemonIndex];
+        
+        enemyAttackDisplay.style.color = "#e74c3c"; // 빨간색으로 변경
+        enemyAttackDisplay.textContent = `🚨 ${attackingPokemonName}의 공격! 집이 흔들립니다!`;
+    }
+
+    // 다음 문제로 넘어가기 전 잠시 대기
+    setTimeout(() => {
+        nextQuestion();
+    }, 1000); // 1초 대기 (피드백 인지 시간)
 }
 
-function gameOver(){
-  $("#game-screen").style.display="none";
-  $("#end-screen").style.display="flex";
-  $("#final-msg").textContent=`${userName} 님 탈락! 도달 단계: ${stage+1}, 맞힌 개수: ${index}`;
-  saveScore(userName,stage,index);
-  showScoreboard();
-}
-function victory(){
-  $("#game-screen").style.display="none";
-  $("#end-screen").style.display="flex";
-  $("#final-msg").textContent=`축하합니다 ${userName} 님! 10단계 클리어 🎉`;
-  saveScore(userName,9,20);
-  showScoreboard();
+function gameOver() {
+    gameScreen.style.display = "none";
+    endScreen.style.display = "flex";
+    finalMessage.textContent = `${userName} 님, 아쉽게도 패배했습니다! 😢 도달 단계: ${stage + 1}, 맞힌 단어 수: ${currentQuestionIndex}개`;
+    saveScore(userName, stage, currentQuestionIndex);
+    showScoreboard();
 }
 
-function saveScore(nm,st,sc){
-  const data=JSON.parse(localStorage.hahaScores||"[]");
-  data.push({nm,st,sc,ts:Date.now()});
-  localStorage.hahaScores=JSON.stringify(data.slice(-15)); // 최근 15개만 저장
+function victory() {
+    gameScreen.style.display = "none";
+    endScreen.style.display = "flex";
+    finalMessage.textContent = `축하합니다 ${userName} 님! 10단계 클리어 🎉 하하 패밀리를 지켜냈어요!`;
+    saveScore(userName, 9, 20); // 마지막 단계(9)의 20문제 모두 맞춤
+    showScoreboard();
 }
-function showScoreboard(){
-  const tb=$("#scoreboard-table"); tb.innerHTML="<tr><th>이름</th><th>단계</th><th>맞힌수</th></tr>";
-  JSON.parse(localStorage.hahaScores||"[]").reverse().forEach(r=>{
-    tb.insertRow(-1).innerHTML=`<td>${r.nm}</td><td>${r.st+1}</td><td>${r.sc}</td>`;
-  });
+
+function saveScore(name, reachedStage, correctWordsInStage) {
+    const scores = JSON.parse(localStorage.getItem("hahaScores") || "[]");
+    scores.push({
+        name: name,
+        stage: reachedStage + 1, // 0부터 시작하는 단계를 1부터 시작하도록
+        correct: correctWordsInStage,
+        timestamp: Date.now()
+    });
+    // 최근 15개만 저장
+    localStorage.setItem("hahaScores", JSON.stringify(scores.slice(-15)));
 }
-$("#restart-btn").onclick=()=>location.reload();
+
+function showScoreboard() {
+    const scores = JSON.parse(localStorage.getItem("hahaScores") || "[]");
+    scoreboardTable.innerHTML = "<tr><th>이름</th><th>도달 단계</th><th>맞힌 단어수</th></tr>"; // 헤더 다시 그림
+    
+    // 최신 기록부터 보여주기 위해 역순 정렬
+    scores.sort((a, b) => b.timestamp - a.timestamp).forEach(record => {
+        const row = scoreboardTable.insertRow(-1);
+        row.insertCell(0).textContent = record.name;
+        row.insertCell(1).textContent = record.stage;
+        row.insertCell(2).textContent = record.correct;
+    });
+}
+
+// Restart button handler
+restartBtn.onclick = () => {
+    location.reload(); // 페이지 새로고침하여 게임 초기 상태로 돌아감
+};
