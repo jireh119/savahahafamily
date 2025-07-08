@@ -10,13 +10,13 @@
     #game-wrapper { width: 100%; max-width: 420px; background:white; border-radius:1rem; box-shadow:0 4px 12px rgba(0,0,0,.15); padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
     h1 { margin:0 0 .5rem 0; text-align:center; font-size:1.75rem; }
     #family-photo { width:100%; max-height:160px; object-fit:cover; border-radius:.5rem; }
-    #house-status { text-align:center; font-size:1.4rem; }
+    #house-status { text-align:center; font-size:1.4rem; white-space:pre-line; }
     #question { text-align:center; font-size:1.3rem; margin:1rem 0; font-weight:600; }
     .options { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
     .option-btn { padding:.75rem .5rem; background:#f0f4ff; border:none; border-radius:.75rem; font-size:1.05rem; cursor:pointer; transition:all .2s; }
     .option-btn:hover { transform:translateY(-2px); box-shadow:0 2px 6px rgba(0,0,0,.15); }
-    .option-btn.correct { background:#d4f5cb; }
-    .option-btn.wrong { background:#ffdedf; }
+    .option-btn.correct { background:#d4f5cb !important; }
+    .option-btn.wrong { background:#ffdedf !important; }
     #stage-info { text-align:center; font-size:.95rem; color:#333; }
     #start-screen, #end-screen { display:flex; flex-direction:column; gap:1rem; }
     #name-input { padding:.75rem 1rem; border:1px solid #ccc; border-radius:.75rem; font-size:1rem; }
@@ -141,156 +141,4 @@
     ];
 
     const DARK_POKEMON = [
-      "Umbreon", "Darkrai", "Absol", "Hydreigon", "Tyranitar", "Zoroark", "Weavile", "Honchkrow", "Yveltal", "Incineroar"
-    ];
-
-    /*=============== 전역 변수 ===============*/
-    let playerName = "";
-    let stageIdx = 0;
-    let lives = 5;
-    let correctThisStage = 0;
-
-    /*=============== 유틸리티 함수 ===============*/
-    const shuffle = (arr) => arr.sort(() => Math.random() - 0.5);
-    const $(id) => document.querySelector(id);
-
-    /*=============== DOM 요소 ===============*/
-    const startScreen = document.getElementById("start-screen");
-    const gameScreen = document.getElementById("game-screen");
-    const endScreen = document.getElementById("end-screen");
-    const nameInput = document.getElementById("name-input");
-    const startBtn = document.getElementById("start-btn");
-    const restartBtn = document.getElementById("restart-btn");
-
-    const stageInfoEl = document.getElementById("stage-info");
-    const houseStatusEl = document.getElementById("house-status");
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
-
-    const finalMsgEl = document.getElementById("final-msg");
-    const scoreboardTable = document.getElementById("scoreboard-table");
-
-    /*=============== 게임 로직 ===============*/
-    let currentWords = [];
-    let currentWordIdx = 0;
-
-    function startGame() {
-      playerName = nameInput.value.trim() || "Player";
-      stageIdx = 0;
-      loadStage();
-      startScreen.style.display = "none";
-      endScreen.style.display = "none";
-      gameScreen.style.display = "flex";
-    }
-
-    function loadStage() {
-      lives = 5;
-      correctThisStage = 0;
-      currentWords = shuffle([...STAGES[stageIdx]]);
-      currentWordIdx = 0;
-      updateHouse();
-      stageInfoEl.textContent = `단계 ${stageIdx + 1} / 10`;
-      nextQuestion();
-    }
-
-    function nextQuestion() {
-      if (correctThisStage === 20) {
-        // Stage clear
-        stageIdx++;
-        if (stageIdx >= STAGES.length) {
-          // Game clear!
-          finishGame(true);
-          return;
-        }
-        loadStage();
-        return;
-      }
-
-      const word = currentWords[currentWordIdx];
-      questionEl.textContent = `"${word.en}" 의 뜻은?`;
-
-      // 만들 보기
-      let choices = [word.ko];
-      while (choices.length < 4) {
-        const randStage = STAGES[Math.floor(Math.random() * STAGES.length)];
-        const randWord = randStage[Math.floor(Math.random() * randStage.length)];
-        if (!choices.includes(randWord.ko)) choices.push(randWord.ko);
-      }
-      shuffle(choices);
-
-      // 렌더 보기
-      optionsEl.innerHTML = "";
-      choices.forEach((choice) => {
-        const btn = document.createElement("button");
-        btn.textContent = choice;
-        btn.className = "option-btn";
-        btn.onclick = () => handleChoice(btn, choice === word.ko);
-        optionsEl.appendChild(btn);
-      });
-    }
-
-    function handleChoice(btn, isCorrect) {
-      Array.from(optionsEl.children).forEach((b) => (b.disabled = true));
-      if (isCorrect) {
-        btn.classList.add("correct");
-        correctThisStage++;
-        currentWordIdx = (currentWordIdx + 1) % currentWords.length;
-        setTimeout(nextQuestion, 800);
-      } else {
-        btn.classList.add("wrong");
-        lives--;
-        houseStatusEl.textContent += `\n${randomPokemon()} 의 공격!`;
-        updateHouse();
-        if (lives === 0) {
-          finishGame(false);
-        } else {
-          setTimeout(nextQuestion, 1000);
-        }
-      }
-    }
-
-    function updateHouse() {
-      const full = "🏠".repeat(lives);
-      const broken = "💥".repeat(5 - lives);
-      houseStatusEl.textContent = full + broken;
-    }
-
-    function randomPokemon() {
-      return DARK_POKEMON[Math.floor(Math.random() * DARK_POKEMON.length)];
-    }
-
-    function finishGame(cleared) {
-      gameScreen.style.display = "none";
-      endScreen.style.display = "flex";
-      const resultText = cleared
-        ? `${playerName} 님, 축하합니다! 10단계를 모두 지켜냈어요!`
-        : `${playerName} 님, 단계 ${stageIdx + 1}에서 무너졌어요... (맞춘 단어 ${correctThisStage}/20)`;
-      finalMsgEl.textContent = resultText;
-      saveScore(playerName, stageIdx + 1, correctThisStage);
-      renderScoreboard();
-    }
-
-    /*=============== 스코어 보드 ===============*/
-    function getScores() {
-      return JSON.parse(localStorage.getItem("hahaScores") || "[]");
-    }
-    function saveScore(name, stage, correct) {
-      const scores = getScores();
-      scores.push({ name, stage, correct, date: Date.now() });
-      localStorage.setItem("hahaScores", JSON.stringify(scores.slice(-20))); // 최근 20개만 저장
-    }
-    function renderScoreboard() {
-      const scores = getScores().sort((a,b)=>b.date - a.date);
-      scoreboardTable.innerHTML = "<tr><th>이름</th><th>단계</th><th>맞춘 단어수</th></tr>" +
-        scores.map(s => `<tr><td>${s.name}</td><td>${s.stage}</td><td>${s.correct}</td></tr>`).join("");
-    }
-
-    /*=============== 이벤트 바인딩 ===============*/
-    startBtn.addEventListener("click", startGame);
-    restartBtn.addEventListener("click", () => {
-      startScreen.style.display = "flex";
-      endScreen.style.display = "none";
-    });
-  </script>
-</body>
-</html>
+      "Umbreon", "Darkrai", "Absol", "Hydreigon", "Tyranitar", "Zoroark", "Weavile", "Honchk
