@@ -8,8 +8,9 @@
       font-family: 'Arial', sans-serif;
       text-align: center;
       padding: 20px;
-      background-color: #f0f8ff; /* 연한 하늘색 배경 */
+      background-color: #f0f8ff;
       color: #333;
+      overflow: hidden; /* 애니메이션이 화면 밖으로 나갈 수 있으므로 */
     }
     #start-screen, #game-screen, #end-screen {
       background-color: #fff;
@@ -18,11 +19,13 @@
       margin: 20px auto;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       max-width: 600px;
-      display: none; /* 기본적으로 숨김 */
+      display: none;
       flex-direction: column;
       align-items: center;
+      position: relative; /* 자식 요소의 절대 위치 지정을 위해 */
+      z-index: 1; /* 다른 요소 위에 오도록 */
     }
-    #start-screen { display: flex; } /* 시작 화면만 처음에 보여줌 */
+    #start-screen { display: flex; }
 
     h1, h2, h3 { color: #2c3e50; }
 
@@ -55,13 +58,13 @@
 
     .option-btn {
       background-color: #007bff;
-      width: calc(50% - 20px); /* 두 개씩 정렬 */
+      width: calc(50% - 20px);
       box-sizing: border-box;
     }
     .option-btn:hover { background-color: #0056b3; }
 
-    .correct { background-color: #28a745 !important; } /* 초록색 */
-    .wrong { background-color: #dc3545 !important; }   /* 빨간색 */
+    .correct { background-color: #28a745 !important; }
+    .wrong { background-color: #dc3545 !important; }
 
     #question {
       font-size: 32px;
@@ -77,37 +80,110 @@
       width: 100%;
     }
 
-    #house-status {
-      margin-top: 30px;
-      font-size: 28px;
-      min-height: 50px; /* 텍스트 공간 확보 */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #enemy-attack {
-      color: #e74c3c;
-      font-weight: bold;
-      margin-top: 10px;
-      font-size: 1.2em;
-    }
-
-    #family-photo-container {
-      width: 150px;
-      height: 150px;
-      border: 3px solid #f39c12;
-      border-radius: 10px;
+    #game-area {
+      position: relative;
+      width: 100%;
+      max-width: 500px; /* 게임 요소들이 들어갈 영역 */
+      height: 300px; /* 적절한 높이 설정 */
       margin: 20px auto;
-      overflow: hidden;
-      background-color: #ecf0f1;
       display: flex;
       justify-content: center;
       align-items: center;
     }
+
+    #house-container {
+      position: relative;
+      width: 200px; /* 집 크기 */
+      height: 200px;
+      background-image: url('house_intact.png'); /* 기본 집 이미지 */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: background-image 0.5s ease-in-out; /* 이미지 교체 시 부드럽게 */
+    }
+
     #family-photo {
-        max-width: 100%;
-        max-height: 100%;
-        display: block; /* 이미지 하단 여백 제거 */
+      position: absolute;
+      width: 60px; /* 가족 사진 크기 */
+      height: 40px;
+      background-image: url('family.jpg');
+      background-size: cover;
+      background-position: center;
+      border: 2px solid gold;
+      border-radius: 5px;
+      top: 60px; /* 집 이미지 내에서의 위치 조정 */
+      left: 70px;
+      z-index: 2; /* 집 이미지 위에 오도록 */
+    }
+
+    #house-explosion {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url('explosion.gif'); /* 폭발 GIF */
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0; /* 기본적으로 숨김 */
+      transition: opacity 0.3s ease-in-out;
+      z-index: 10;
+    }
+    #house-explosion.show { opacity: 1; }
+
+    #pokemon-attack-effect {
+        position: absolute;
+        width: 150px; /* 포켓몬 공격 이미지 크기 */
+        height: 150px;
+        background-image: url('umbreon_attack.png'); /* 블래키 공격 이미지 */
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0;
+        z-index: 5;
+        top: 0; /* 초기 위치 조정 */
+        left: 0;
+        transform: translate(-100%, -100%); /* 화면 밖으로 숨김 */
+    }
+
+    /* 공격 애니메이션 */
+    @keyframes attack {
+        0% { opacity: 0; transform: translate(-100%, 0); } /* 왼쪽 밖에서 시작 */
+        20% { opacity: 1; transform: translate(50%, 0); } /* 화면 중앙 근처로 이동 */
+        80% { opacity: 1; transform: translate(250%, 0); } /* 집을 지나쳐 오른쪽으로 */
+        100% { opacity: 0; transform: translate(400%, 0); } /* 화면 밖으로 사라짐 */
+    }
+    .attacking #pokemon-attack-effect {
+        animation: attack 1s forwards; /* 1초 동안 애니메이션 재생 */
+    }
+    /* 특정 포켓몬 기술 이펙트 (선택 사항) */
+    #skill-effect {
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        background-image: url('shadow_ball.png'); /* 그림자볼 이미지 */
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0;
+        z-index: 6;
+    }
+    @keyframes skillShot {
+        0% { opacity: 0; transform: translate(-100px, 0px) scale(0.5); }
+        20% { opacity: 1; transform: translate(0px, 0px) scale(1); }
+        80% { transform: translate(150px, 0px) scale(1); }
+        100% { opacity: 0; transform: translate(250px, 0px) scale(0.5); }
+    }
+    .attacking #skill-effect {
+        animation: skillShot 0.8s forwards; /* 공격보다 약간 빠르게 */
+        animation-delay: 0.2s; /* 포켓몬이 나타난 후 발사 */
+    }
+
+
+    #house-status-text {
+        font-size: 20px;
+        margin-top: 10px;
+    }
+    #enemy-attack {
+      font-size: 18px;
+      margin-top: 10px;
     }
 
     #scoreboard-table {
@@ -138,14 +214,17 @@
 
   <div id="game-screen">
     <h2 id="stage-info">Stage</h2>
-    <div id="family-photo-container">
-        <img id="family-photo" src="family.jpg" alt="우리 가족" style="display: none;">
-        <span id="photo-placeholder">가족 사진 준비 중...</span>
+    
+    <div id="game-area">
+        <div id="house-explosion"></div> <div id="pokemon-attack-effect"></div> <div id="skill-effect"></div> <div id="house-container">
+            <div id="family-photo"></div> </div>
     </div>
+
+    <div id="house-status-text">남은 기회: <span id="lives-count">5</span></div>
+    <div id="enemy-attack" style="margin-top: 10px; min-height: 25px;"></div>
+
     <div id="question" style="font-size: 24px; margin: 20px 0;"></div>
     <div id="options"></div>
-    <div id="house-status" style="margin-top: 20px; font-size: 20px;"></div>
-    <div id="enemy-attack" style="margin-top: 10px; font-size: 18px;"></div>
   </div>
 
   <div id="end-screen">
