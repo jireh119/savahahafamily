@@ -74,8 +74,7 @@ const STAGES = [
   ]
 ];
 
-// Dark Type Pokemon (악 타입 포켓몬) 이름 (이미지 파일명과 연동 가능)
-const DARK_POKEMON_NAMES = ["블래키", "다크라이", "돈크로우", "마기라스"];
+const DARK_POKEMON_NAMES = ["블래키", "다크라이", "돈크로우", "마기라스"]; // 현재는 이름만 사용
 
 const $ = sel => document.querySelector(sel);
 const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
@@ -91,19 +90,30 @@ const startBtn = $("#start-btn");
 const stageInfo = $("#stage-info");
 const questionText = $("#question");
 const optionsContainer = $("#options");
-const houseStatus = $("#house-status");
+const houseContainer = $("#house-container"); // 집 이미지 컨테이너
+const familyPhoto = $("#family-photo");       // 가족 사진
+const houseExplosion = $("#house-explosion"); // 집 폭발 이펙트
+const pokemonAttackEffect = $("#pokemon-attack-effect"); // 포켓몬 공격 애니메이션 요소
+const skillEffect = $("#skill-effect"); // 스킬 이펙트 (선택 사항)
+const livesCountDisplay = $("#lives-count"); // 남은 기회 텍스트 표시
 const enemyAttackDisplay = $("#enemy-attack");
 const finalMessage = $("#final-msg");
 const scoreboardTable = $("#scoreboard-table");
 const restartBtn = $("#restart-btn");
-const familyPhoto = $("#family-photo");
-const photoPlaceholder = $("#photo-placeholder");
 
-// Game Start Handler
+// 집 이미지 단계 (lives에 따라 변경)
+const HOUSE_IMAGES = [
+    'house_damaged_3.png', // 0 lives (폭발 직전 혹은 파괴 가장 심함)
+    'house_damaged_2.png', // 1~2 lives
+    'house_damaged_1.png', // 3~4 lives
+    'house_intact.png'     // 5 lives (온전한 집)
+];
+
+// 게임 시작 핸들러
 startBtn.onclick = () => {
     userName = nameInput.value.trim();
     if (userName.length === 0) {
-        userName = "용감한 친구"; // 이름 미입력 시 기본값
+        userName = "용감한 친구";
     }
     startScreen.style.display = "none";
     gameScreen.style.display = "flex";
@@ -112,16 +122,27 @@ startBtn.onclick = () => {
     stage = 0;
     currentQuestionIndex = 0;
     lives = 5;
-    enemyAttackDisplay.textContent = ""; // 공격 메시지 초기화
     
-    // 가족 사진 표시
-    familyPhoto.style.display = "block"; // 이미지 보이게
-    photoPlaceholder.style.display = "none"; // 플레이스홀더 숨김
+    // 집 상태, 공격 메시지, 폭발 효과 초기화
+    updateHouseVisual(lives); // 초기 집 상태 (온전한 집)
+    houseExplosion.classList.remove('show');
+    enemyAttackDisplay.textContent = "";
 
     nextQuestion();
 };
 
 function nextQuestion() {
+    // 모든 버튼 활성화 및 이전 피드백 색상 제거
+    Array.from(optionsContainer.children).forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove("correct", "wrong");
+    });
+    
+    // 포켓몬 공격 애니메이션 초기화 (다음 문제 전에 숨김)
+    pokemonAttackEffect.classList.remove('attacking');
+    skillEffect.classList.remove('attacking');
+
+
     // 목숨이 0 이하면 게임 오버
     if (lives <= 0) {
         return gameOver();
@@ -130,8 +151,7 @@ function nextQuestion() {
     // 현재 스테이지 20문제를 모두 맞췄으면 다음 스테이지로
     if (currentQuestionIndex >= 20) {
         stage++;
-        currentQuestionIndex = 0;
-        // 10단계를 모두 클리어했으면 승리
+        currentQuestionIndex = 0; // 다음 스테이지는 0번 인덱스부터 다시 시작
         if (stage >= 10) {
             return victory();
         }
@@ -142,18 +162,16 @@ function nextQuestion() {
 
     stageInfo.textContent = `Stage ${stage + 1} (문제 ${currentQuestionIndex + 1}/20)`;
     questionText.textContent = `"${item.en}" 뜻은?`;
-    houseStatus.textContent = "🏠".repeat(lives); // 남은 기회 집 아이콘으로 표시
+    livesCountDisplay.textContent = lives; // 남은 기회 텍스트 업데이트
     enemyAttackDisplay.textContent = ""; // 이전 공격 메시지 지우기
 
     renderOptions(item);
 }
 
 function renderOptions(correctItem) {
-    // 오답 보기를 현재 스테이지의 단어들에서 가져오도록 수정
     const incorrectOptionsPool = STAGES[stage].filter(o => o !== correctItem);
     const shuffledIncorrect = shuffle(incorrectOptionsPool).slice(0, 3);
     
-    // 정답과 오답 섞어서 보기 생성
     const options = shuffle([correctItem, ...shuffledIncorrect]);
 
     optionsContainer.innerHTML = "";
@@ -172,26 +190,69 @@ function checkAnswer(isCorrect, clickedButton) {
 
     if (isCorrect) {
         clickedButton.classList.add("correct");
-        enemyAttackDisplay.style.color = "#28a745"; // 초록색으로 변경
+        enemyAttackDisplay.style.color = "#28a745";
         enemyAttackDisplay.textContent = "👍 정답입니다! 가족을 지켰어요!";
+        
+        // 정답 시에는 바로 다음 문제로 (애니메이션 없음)
+        setTimeout(() => {
+            currentQuestionIndex++;
+            nextQuestion();
+        }, 1000); // 1초 대기 후 다음 문제
     } else {
         clickedButton.classList.add("wrong");
         lives--;
-        houseStatus.textContent = "🏠".repeat(lives); // 남은 기회 업데이트
+        livesCountDisplay.textContent = lives; // 남은 기회 텍스트 업데이트
         
-        // 악 타입 포켓몬 공격 메시지
+        // 악 타입 포켓몬 공격 애니메이션 시작
+        pokemonAttackEffect.classList.add('attacking');
+        skillEffect.classList.add('attacking');
+
         const randomPokemonIndex = Math.floor(Math.random() * DARK_POKEMON_NAMES.length);
         const attackingPokemonName = DARK_POKEMON_NAMES[randomPokemonIndex];
         
-        enemyAttackDisplay.style.color = "#e74c3c"; // 빨간색으로 변경
+        enemyAttackDisplay.style.color = "#e74c3c";
         enemyAttackDisplay.textContent = `🚨 ${attackingPokemonName}의 공격! 집이 흔들립니다!`;
-    }
 
-    // 다음 문제로 넘어가기 전 잠시 대기
-    setTimeout(() => {
-        nextQuestion();
-    }, 1000); // 1초 대기 (피드백 인지 시간)
+        // 집 이미지 업데이트 및 폭발 처리
+        setTimeout(() => {
+            updateHouseVisual(lives); // 집 이미지 교체
+            if (lives <= 0) {
+                houseExplosion.classList.add('show'); // 폭발 효과 표시
+                enemyAttackDisplay.textContent = `💥 ${userName} 님의 집이 파괴되었습니다!`;
+                // 폭발 애니메이션 후 게임 오버 처리
+                setTimeout(() => {
+                    gameOver();
+                }, 1500); // 폭발 애니메이션 재생 시간
+            } else {
+                currentQuestionIndex++;
+                nextQuestion();
+            }
+        }, 1000); // 포켓몬 공격 애니메이션과 집 이미지 변경 동시 진행
+    }
 }
+
+// 집 이미지 업데이트 함수
+function updateHouseVisual(currentLives) {
+    let houseImage;
+    if (currentLives <= 0) {
+        houseImage = HOUSE_IMAGES[0]; // 가장 파괴된 이미지
+        houseContainer.style.backgroundImage = `url('${houseImage}')`;
+        familyPhoto.style.display = 'none'; // 집이 파괴되면 가족사진도 안 보이게
+    } else if (currentLives <= 2) {
+        houseImage = HOUSE_IMAGES[1];
+        houseContainer.style.backgroundImage = `url('${houseImage}')`;
+        familyPhoto.style.display = 'block';
+    } else if (currentLives <= 4) {
+        houseImage = HOUSE_IMAGES[2];
+        houseContainer.style.backgroundImage = `url('${houseImage}')`;
+        familyPhoto.style.display = 'block';
+    } else {
+        houseImage = HOUSE_IMAGES[3]; // 온전한 집
+        houseContainer.style.backgroundImage = `url('${houseImage}')`;
+        familyPhoto.style.display = 'block';
+    }
+}
+
 
 function gameOver() {
     gameScreen.style.display = "none";
@@ -213,19 +274,17 @@ function saveScore(name, reachedStage, correctWordsInStage) {
     const scores = JSON.parse(localStorage.getItem("hahaScores") || "[]");
     scores.push({
         name: name,
-        stage: reachedStage + 1, // 0부터 시작하는 단계를 1부터 시작하도록
+        stage: reachedStage + 1,
         correct: correctWordsInStage,
         timestamp: Date.now()
     });
-    // 최근 15개만 저장
     localStorage.setItem("hahaScores", JSON.stringify(scores.slice(-15)));
 }
 
 function showScoreboard() {
     const scores = JSON.parse(localStorage.getItem("hahaScores") || "[]");
-    scoreboardTable.innerHTML = "<tr><th>이름</th><th>도달 단계</th><th>맞힌 단어수</th></tr>"; // 헤더 다시 그림
+    scoreboardTable.innerHTML = "<tr><th>이름</th><th>도달 단계</th><th>맞힌 단어수</th></tr>";
     
-    // 최신 기록부터 보여주기 위해 역순 정렬
     scores.sort((a, b) => b.timestamp - a.timestamp).forEach(record => {
         const row = scoreboardTable.insertRow(-1);
         row.insertCell(0).textContent = record.name;
@@ -234,7 +293,6 @@ function showScoreboard() {
     });
 }
 
-// Restart button handler
 restartBtn.onclick = () => {
-    location.reload(); // 페이지 새로고침하여 게임 초기 상태로 돌아감
+    location.reload();
 };
