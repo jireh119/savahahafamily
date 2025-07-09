@@ -8,9 +8,9 @@
       font-family: 'Arial', sans-serif;
       text-align: center;
       padding: 20px;
-      background-color: #f0f8ff;
+      background-color: #f0f8ff; /* 연한 하늘색 배경 */
       color: #333;
-      overflow: hidden; /* 애니메이션이 화면 밖으로 나갈 수 있으므로 */
+      overflow: hidden; /* 애니메이션이 화면 밖으로 나가지 않도록 */
     }
     #start-screen, #game-screen, #end-screen {
       background-color: #fff;
@@ -18,16 +18,27 @@
       padding: 30px;
       margin: 20px auto;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      max-width: 600px;
-      display: none;
+      max-width: 700px; /* 게임 영역을 위해 조금 더 넓게 */
+      display: none; /* 기본적으로 숨김 */
       flex-direction: column;
       align-items: center;
-      position: relative; /* 자식 요소의 절대 위치 지정을 위해 */
-      z-index: 1; /* 다른 요소 위에 오도록 */
+      position: relative;
+      z-index: 1;
     }
-    #start-screen { display: flex; }
+    #start-screen { display: flex; } /* 시작 화면만 처음에 보여줌 */
 
     h1, h2, h3 { color: #2c3e50; }
+
+    #start-family-photo { /* 시작 화면 가족 사진 */
+        width: 150px;
+        height: 100px;
+        background-image: url('family.jpg');
+        background-size: cover;
+        background-position: center;
+        border: 3px solid #f39c12;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
 
     #name-input {
       padding: 10px;
@@ -58,13 +69,13 @@
 
     .option-btn {
       background-color: #007bff;
-      width: calc(50% - 20px);
+      width: calc(50% - 20px); /* 두 개씩 정렬 */
       box-sizing: border-box;
     }
     .option-btn:hover { background-color: #0056b3; }
 
-    .correct { background-color: #28a745 !important; }
-    .wrong { background-color: #dc3545 !important; }
+    .correct { background-color: #28a745 !important; } /* 초록색 */
+    .wrong { background-color: #dc3545 !important; }   /* 빨간색 */
 
     #question {
       font-size: 32px;
@@ -80,15 +91,47 @@
       width: 100%;
     }
 
-    #game-area {
+    /* 게임 영역 - 블래키, 섀도우볼, 집, 방어막 포함 */
+    #game-elements-container {
       position: relative;
       width: 100%;
-      max-width: 500px; /* 게임 요소들이 들어갈 영역 */
-      height: 300px; /* 적절한 높이 설정 */
+      max-width: 600px;
+      height: 250px; /* 요소들 배치에 필요한 높이 */
       margin: 20px auto;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: space-between; /* 블래키와 집을 양 끝에 */
+      padding: 0 20px;
+      box-sizing: border-box;
+      /* border: 1px dashed #ccc; /* 디버깅용 */
+      overflow: hidden; /* 애니메이션 범위 제한 */
+    }
+
+    #umbreon-container {
+        position: relative;
+        width: 120px; /* 블래키 크기 */
+        height: 120px;
+        background-image: url('umbreon_attack.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 1; /* 항상 보이도록 */
+        transform: translateX(0);
+        transition: transform 0.3s ease-out;
+    }
+
+    #shadowball-effect {
+        position: absolute;
+        width: 70px; /* 섀도우볼 크기 */
+        height: 70px;
+        background-image: url('shadow_ball.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        opacity: 0;
+        z-index: 5;
+        top: 50%; /* 컨테이너 중앙 정렬 */
+        left: 100px; /* 블래키 옆에서 시작 */
+        transform: translateY(-50%) translateX(0); /* 초기 위치 */
     }
 
     #house-container {
@@ -101,21 +144,7 @@
       background-position: center;
       transition: background-image 0.5s ease-in-out; /* 이미지 교체 시 부드럽게 */
     }
-
-    #family-photo {
-      position: absolute;
-      width: 60px; /* 가족 사진 크기 */
-      height: 40px;
-      background-image: url('family.jpg');
-      background-size: cover;
-      background-position: center;
-      border: 2px solid gold;
-      border-radius: 5px;
-      top: 60px; /* 집 이미지 내에서의 위치 조정 */
-      left: 70px;
-      z-index: 2; /* 집 이미지 위에 오도록 */
-    }
-
+    
     #house-explosion {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -129,53 +158,40 @@
     }
     #house-explosion.show { opacity: 1; }
 
-    #pokemon-attack-effect {
+    #shield-effect {
         position: absolute;
-        width: 150px; /* 포켓몬 공격 이미지 크기 */
+        width: 150px; /* 방어막 크기 */
         height: 150px;
-        background-image: url('umbreon_attack.png'); /* 블래키 공격 이미지 */
+        background-image: url('shield.png'); /* 방어막 이미지 */
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
         opacity: 0;
-        z-index: 5;
-        top: 0; /* 초기 위치 조정 */
-        left: 0;
-        transform: translate(-100%, -100%); /* 화면 밖으로 숨김 */
-    }
-
-    /* 공격 애니메이션 */
-    @keyframes attack {
-        0% { opacity: 0; transform: translate(-100%, 0); } /* 왼쪽 밖에서 시작 */
-        20% { opacity: 1; transform: translate(50%, 0); } /* 화면 중앙 근처로 이동 */
-        80% { opacity: 1; transform: translate(250%, 0); } /* 집을 지나쳐 오른쪽으로 */
-        100% { opacity: 0; transform: translate(400%, 0); } /* 화면 밖으로 사라짐 */
-    }
-    .attacking #pokemon-attack-effect {
-        animation: attack 1s forwards; /* 1초 동안 애니메이션 재생 */
-    }
-    /* 특정 포켓몬 기술 이펙트 (선택 사항) */
-    #skill-effect {
-        position: absolute;
-        width: 80px;
-        height: 80px;
-        background-image: url('shadow_ball.png'); /* 그림자볼 이미지 */
-        background-size: contain;
-        background-repeat: no-repeat;
-        opacity: 0;
         z-index: 6;
-    }
-    @keyframes skillShot {
-        0% { opacity: 0; transform: translate(-100px, 0px) scale(0.5); }
-        20% { opacity: 1; transform: translate(0px, 0px) scale(1); }
-        80% { transform: translate(150px, 0px) scale(1); }
-        100% { opacity: 0; transform: translate(250px, 0px) scale(0.5); }
-    }
-    .attacking #skill-effect {
-        animation: skillShot 0.8s forwards; /* 공격보다 약간 빠르게 */
-        animation-delay: 0.2s; /* 포켓몬이 나타난 후 발사 */
+        top: 50%; /* 집 중앙 근처 */
+        right: 25px; /* 집의 약간 앞에 위치 */
+        transform: translateY(-50%) scale(0.5); /* 작게 시작 */
     }
 
+    /* 애니메이션 키프레임 */
+    @keyframes shadowball-shoot {
+        0% { opacity: 0; transform: translateY(-50%) translateX(0) scale(0.5); }
+        10% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
+        80% { opacity: 1; transform: translateY(-50%) translateX(calc(100% - 150px)) scale(1); } /* 집 위치까지 이동 */
+        100% { opacity: 0; transform: translateY(-50%) translateX(calc(100% - 100px)) scale(0.5); } /* 충돌 후 사라짐 */
+    }
+    .shadowball-active #shadowball-effect {
+        animation: shadowball-shoot 1s forwards;
+    }
+
+    @keyframes shield-activate {
+        0% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+        50% { opacity: 1; transform: translateY(-50%) scale(1); }
+        100% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+    }
+    .shield-active #shield-effect {
+        animation: shield-activate 1s forwards;
+    }
 
     #house-status-text {
         font-size: 20px;
@@ -183,7 +199,7 @@
     }
     #enemy-attack {
       font-size: 18px;
-      margin-top: 10px;
+      min-height: 25px; /* 메시지 공간 확보 */
     }
 
     #scoreboard-table {
@@ -206,7 +222,7 @@
 
   <div id="start-screen">
     <h1>하하 패밀리를 지켜라!</h1>
-    <p>우리 가족을 지키기 위해 영단어 퀴즈를 맞춰보자!</p>
+    <div id="start-family-photo"></div> <p>우리 가족을 지키기 위해 영단어 퀴즈를 맞춰보자!</p>
     <input id="name-input" type="text" placeholder="이름을 입력하세요" maxlength="10"/>
     <br><br>
     <button id="start-btn">게임 시작</button>
@@ -215,13 +231,11 @@
   <div id="game-screen">
     <h2 id="stage-info">Stage</h2>
     
-    <div id="game-area">
-        <div id="house-explosion"></div> <div id="pokemon-attack-effect"></div> <div id="skill-effect"></div> <div id="house-container">
-            <div id="family-photo"></div> </div>
-    </div>
+    <div id="game-elements-container">
+        <div id="umbreon-container"></div> <div id="shadowball-effect"></div> <div id="house-container"></div> <div id="shield-effect"></div> <div id="house-explosion"></div> </div>
 
     <div id="house-status-text">남은 기회: <span id="lives-count">5</span></div>
-    <div id="enemy-attack" style="margin-top: 10px; min-height: 25px;"></div>
+    <div id="enemy-attack"></div>
 
     <div id="question" style="font-size: 24px; margin: 20px 0;"></div>
     <div id="options"></div>
