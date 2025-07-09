@@ -1,5 +1,4 @@
-// ========== Haha Family Defense – FULL GAME LOGIC ==========
-// 10단계 × 20단어 = 200단어 세트 (영↔한)
+// STAGES 배열은 이전과 동일하게 유지
 const STAGES = [
   /* ---------- Stage 1 ---------- */
   [
@@ -90,22 +89,23 @@ const startBtn = $("#start-btn");
 const stageInfo = $("#stage-info");
 const questionText = $("#question");
 const optionsContainer = $("#options");
-const houseContainer = $("#house-container"); // 집 이미지 컨테이너
-const familyPhoto = $("#family-photo");       // 가족 사진
-const houseExplosion = $("#house-explosion"); // 집 폭발 이펙트
-const pokemonAttackEffect = $("#pokemon-attack-effect"); // 포켓몬 공격 애니메이션 요소
-const skillEffect = $("#skill-effect"); // 스킬 이펙트 (선택 사항)
-const livesCountDisplay = $("#lives-count"); // 남은 기회 텍스트 표시
+const umbreonContainer = $("#umbreon-container"); // 블래키 컨테이너
+const shadowballEffect = $("#shadowball-effect"); // 섀도우볼 효과
+const houseContainer = $("#house-container");     // 집 이미지 컨테이너
+const shieldEffect = $("#shield-effect");         // 방어막 효과
+const houseExplosion = $("#house-explosion");     // 집 폭발 이펙트
+const livesCountDisplay = $("#lives-count");      // 남은 기회 텍스트 표시
 const enemyAttackDisplay = $("#enemy-attack");
 const finalMessage = $("#final-msg");
 const scoreboardTable = $("#scoreboard-table");
 const restartBtn = $("#restart-btn");
 
 // 집 이미지 단계 (lives에 따라 변경)
+// lives: 5 (인덱스 3), 4 (인덱스 2), 3 (인덱스 2), 2 (인덱스 1), 1 (인덱스 1), 0 (인덱스 0)
 const HOUSE_IMAGES = [
-    'house_damaged_3.png', // 0 lives (폭발 직전 혹은 파괴 가장 심함)
-    'house_damaged_2.png', // 1~2 lives
-    'house_damaged_1.png', // 3~4 lives
+    'house_damaged_3.png', // 0 lives (가장 파괴됨)
+    'house_damaged_2.png', // 1-2 lives
+    'house_damaged_1.png', // 3-4 lives
     'house_intact.png'     // 5 lives (온전한 집)
 ];
 
@@ -123,10 +123,14 @@ startBtn.onclick = () => {
     currentQuestionIndex = 0;
     lives = 5;
     
-    // 집 상태, 공격 메시지, 폭발 효과 초기화
+    // 초기화 및 상태 설정
     updateHouseVisual(lives); // 초기 집 상태 (온전한 집)
-    houseExplosion.classList.remove('show');
-    enemyAttackDisplay.textContent = "";
+    houseExplosion.classList.remove('show'); // 폭발 효과 숨김
+    enemyAttackDisplay.textContent = "";     // 공격 메시지 초기화
+
+    // 블래키 초기 위치 및 가시성 설정
+    umbreonContainer.style.opacity = '1';
+    umbreonContainer.style.transform = 'translateX(0)';
 
     nextQuestion();
 };
@@ -138,11 +142,10 @@ function nextQuestion() {
         btn.classList.remove("correct", "wrong");
     });
     
-    // 포켓몬 공격 애니메이션 초기화 (다음 문제 전에 숨김)
-    pokemonAttackEffect.classList.remove('attacking');
-    skillEffect.classList.remove('attacking');
-
-
+    // 섀도우볼, 방어막 애니메이션 초기화 (다음 문제 전에 숨김)
+    shadowballEffect.classList.remove('shadowball-active');
+    shieldEffect.classList.remove('shield-active');
+    
     // 목숨이 0 이하면 게임 오버
     if (lives <= 0) {
         return gameOver();
@@ -188,32 +191,36 @@ function checkAnswer(isCorrect, clickedButton) {
     // 모든 버튼 비활성화 (중복 클릭 방지)
     Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
 
+    // 섀도우볼 애니메이션 시작
+    shadowballEffect.classList.add('shadowball-active');
+
     if (isCorrect) {
         clickedButton.classList.add("correct");
         enemyAttackDisplay.style.color = "#28a745";
         enemyAttackDisplay.textContent = "👍 정답입니다! 가족을 지켰어요!";
         
-        // 정답 시에는 바로 다음 문제로 (애니메이션 없음)
+        // 방어막 애니메이션 시작 (섀도우볼 도착 시점에 맞춰)
+        setTimeout(() => {
+            shieldEffect.classList.add('shield-active');
+        }, 600); // 섀도우볼 애니메이션의 중간 시점
+        
+        // 애니메이션 완료 후 다음 문제로
         setTimeout(() => {
             currentQuestionIndex++;
             nextQuestion();
-        }, 1000); // 1초 대기 후 다음 문제
+        }, 1200); // 섀도우볼/방어막 애니메이션보다 조금 더 길게 대기
     } else {
         clickedButton.classList.add("wrong");
         lives--;
         livesCountDisplay.textContent = lives; // 남은 기회 텍스트 업데이트
         
-        // 악 타입 포켓몬 공격 애니메이션 시작
-        pokemonAttackEffect.classList.add('attacking');
-        skillEffect.classList.add('attacking');
-
         const randomPokemonIndex = Math.floor(Math.random() * DARK_POKEMON_NAMES.length);
         const attackingPokemonName = DARK_POKEMON_NAMES[randomPokemonIndex];
         
         enemyAttackDisplay.style.color = "#e74c3c";
         enemyAttackDisplay.textContent = `🚨 ${attackingPokemonName}의 공격! 집이 흔들립니다!`;
 
-        // 집 이미지 업데이트 및 폭발 처리
+        // 섀도우볼이 집에 부딪히는 효과 및 집 이미지 업데이트
         setTimeout(() => {
             updateHouseVisual(lives); // 집 이미지 교체
             if (lives <= 0) {
@@ -227,30 +234,23 @@ function checkAnswer(isCorrect, clickedButton) {
                 currentQuestionIndex++;
                 nextQuestion();
             }
-        }, 1000); // 포켓몬 공격 애니메이션과 집 이미지 변경 동시 진행
+        }, 1000); // 섀도우볼 애니메이션 완료 시점에 맞춰
     }
 }
 
 // 집 이미지 업데이트 함수
 function updateHouseVisual(currentLives) {
-    let houseImage;
+    let houseImageIndex;
     if (currentLives <= 0) {
-        houseImage = HOUSE_IMAGES[0]; // 가장 파괴된 이미지
-        houseContainer.style.backgroundImage = `url('${houseImage}')`;
-        familyPhoto.style.display = 'none'; // 집이 파괴되면 가족사진도 안 보이게
+        houseImageIndex = 0; // HOUSE_IMAGES[0] = house_damaged_3.png
     } else if (currentLives <= 2) {
-        houseImage = HOUSE_IMAGES[1];
-        houseContainer.style.backgroundImage = `url('${houseImage}')`;
-        familyPhoto.style.display = 'block';
+        houseImageIndex = 1; // HOUSE_IMAGES[1] = house_damaged_2.png
     } else if (currentLives <= 4) {
-        houseImage = HOUSE_IMAGES[2];
-        houseContainer.style.backgroundImage = `url('${houseImage}')`;
-        familyPhoto.style.display = 'block';
+        houseImageIndex = 2; // HOUSE_IMAGES[2] = house_damaged_1.png
     } else {
-        houseImage = HOUSE_IMAGES[3]; // 온전한 집
-        houseContainer.style.backgroundImage = `url('${houseImage}')`;
-        familyPhoto.style.display = 'block';
+        houseImageIndex = 3; // HOUSE_IMAGES[3] = house_intact.png
     }
+    houseContainer.style.backgroundImage = `url('${HOUSE_IMAGES[houseImageIndex]}')`;
 }
 
 
