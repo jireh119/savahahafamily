@@ -1,254 +1,215 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>Haha Family Defense</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      text-align: center;
-      padding: 20px;
-      background-color: #f0f8ff; /* 연한 하늘색 배경 */
-      color: #333;
-      overflow: hidden; /* 애니메이션이 화면 밖으로 나가지 않도록 */
-    }
-    #start-screen, #game-screen, #end-screen {
-      background-color: #fff;
-      border-radius: 10px;
-      padding: 30px;
-      margin: 20px auto;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      max-width: 700px; /* 게임 영역을 위해 조금 더 넓게 */
-      display: none; /* 기본적으로 숨김 */
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      z-index: 1;
-    }
-    #start-screen { display: flex; } /* 시작 화면만 처음에 보여줌 */
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    padding: 20px;
+    background-color: #f0f8ff;
+    color: #333;
+    overflow: hidden;
+  }
+  #start-screen, #game-screen, #end-screen {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 30px;
+    margin: 20px auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    max-width: 700px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  #start-screen { display: flex; }
 
-    h1, h2, h3 { color: #2c3e50; }
+  h1, h2, h3 { color: #2c3e50; }
 
-    #start-family-photo { /* 시작 화면 가족 사진 */
-        width: 150px;
-        height: 100px;
-        background-image: url('family.jpg');
-        background-size: cover;
-        background-position: center;
-        border: 3px solid #f39c12;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
-
-    #name-input {
-      padding: 10px;
-      font-size: 18px;
-      border: 1px solid #ccc;
+  #start-family-photo {
+      width: 150px;
+      height: 100px;
+      background-image: url('family.jpg');
+      background-size: cover;
+      background-position: center;
+      border: 3px solid #f39c12;
       border-radius: 5px;
       margin-bottom: 20px;
-      width: 80%;
-      max-width: 300px;
-    }
+  }
 
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 18px;
-      transition: background-color 0.3s ease;
-      margin: 5px;
-    }
-    button:hover { background-color: #45a049; }
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-    }
+  #name-input {
+    padding: 10px;
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    width: 80%;
+    max-width: 300px;
+  }
 
-    .option-btn {
-      background-color: #007bff;
-      width: calc(50% - 20px); /* 두 개씩 정렬 */
-      box-sizing: border-box;
-    }
-    .option-btn:hover { background-color: #0056b3; }
+  button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+  }
+  button:hover { background-color: #45a049; }
+  button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
 
-    .correct { background-color: #28a745 !important; } /* 초록색 */
-    .wrong { background-color: #dc3545 !important; }   /* 빨간색 */
+  .option-btn {
+    background-color: #007bff;
+    width: calc(50% - 20px);
+    box-sizing: border-box;
+  }
+  .option-btn:hover { background-color: #0056b3; }
 
-    #question {
-      font-size: 32px;
-      font-weight: bold;
-      margin: 25px 0;
-      color: #34495e;
-    }
+  .correct { background-color: #28a745 !important; }
+  .wrong { background-color: #dc3545 !important; }
 
-    #options {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-    }
+  #question {
+    font-size: 32px;
+    font-weight: bold;
+    margin: 25px 0;
+    color: #34495e;
+  }
 
-    /* 게임 영역 - 블래키, 섀도우볼, 집, 방어막 포함 */
-    #game-elements-container {
+  #options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  /* 게임 영역 - 블래키, 섀도우볼, 집, 방어막 포함 */
+  #game-elements-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    height: 400px; /* 더 커진 요소들을 위해 높이 증가 */
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* 변경 없음 */
+    padding: 0 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  #umbreon-container {
       position: relative;
-      width: 100%;
-      max-width: 600px;
-      height: 250px; /* 요소들 배치에 필요한 높이 */
-      margin: 20px auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between; /* 블래키와 집을 양 끝에 */
-      padding: 0 20px;
-      box-sizing: border-box;
-      /* border: 1px dashed #ccc; /* 디버깅용 */
-      overflow: hidden; /* 애니메이션 범위 제한 */
-    }
-
-    #umbreon-container {
-        position: relative;
-        width: 120px; /* 블래키 크기 */
-        height: 120px;
-        background-image: url('umbreon_attack.png');
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        opacity: 1; /* 항상 보이도록 */
-        transform: translateX(0);
-        transition: transform 0.3s ease-out;
-    }
-
-    #shadowball-effect {
-        position: absolute;
-        width: 70px; /* 섀도우볼 크기 */
-        height: 70px;
-        background-image: url('shadow_ball.png');
-        background-size: contain;
-        background-repeat: no-repeat;
-        opacity: 0;
-        z-index: 5;
-        top: 50%; /* 컨테이너 중앙 정렬 */
-        left: 100px; /* 블래키 옆에서 시작 */
-        transform: translateY(-50%) translateX(0); /* 초기 위치 */
-    }
-
-    #house-container {
-      position: relative;
-      width: 200px; /* 집 크기 */
-      height: 200px;
-      background-image: url('house_intact.png'); /* 기본 집 이미지 */
+      width: 240px; /* 블래키 2배 크기 */
+      height: 240px; /* 블래키 2배 크기 */
+      background-image: url('umbreon_attack.png');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      transition: background-image 0.5s ease-in-out; /* 이미지 교체 시 부드럽게 */
-    }
-    
-    #house-explosion {
+      opacity: 1;
+      transform: translateX(0);
+      transition: transform 0.3s ease-out;
+      order: 2; /* 오른쪽에 배치 */
+  }
+
+  #shadowball-effect {
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-image: url('explosion.gif'); /* 폭발 GIF */
+      width: 140px; /* 섀도우볼 크기 (비율 유지) */
+      height: 140px; /* 섀도우볼 크기 (비율 유지) */
+      background-image: url('shadow_ball.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0;
+      z-index: 5;
+      top: 50%;
+      right: 100px; /* 블래키 옆에서 시작 (오른쪽) */
+      transform: translateY(-50%) translateX(0);
+  }
+
+  #house-container {
+    position: relative;
+    width: 400px; /* 집 2배 크기 */
+    height: 400px; /* 집 2배 크기 */
+    background-image: url('house_intact.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: background-image 0.5s ease-in-out;
+    order: 1; /* 왼쪽에 배치 */
+  }
+
+  #house-explosion {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('explosion.gif');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 10;
+  }
+  #house-explosion.show { opacity: 1; }
+
+  #shield-effect {
+      position: absolute;
+      width: 300px; /* 방어막 크기 (비율 유지) */
+      height: 300px; /* 방어막 크기 (비율 유지) */
+      background-image: url('shield.png');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      opacity: 0; /* 기본적으로 숨김 */
-      transition: opacity 0.3s ease-in-out;
-      z-index: 10;
-    }
-    #house-explosion.show { opacity: 1; }
+      opacity: 0;
+      z-index: 6;
+      top: 50%;
+      left: 50px; /* 집의 약간 앞에 위치 (왼쪽) */
+      transform: translateY(-50%) scale(0.5);
+  }
 
-    #shield-effect {
-        position: absolute;
-        width: 150px; /* 방어막 크기 */
-        height: 150px;
-        background-image: url('shield.png'); /* 방어막 이미지 */
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        opacity: 0;
-        z-index: 6;
-        top: 50%; /* 집 중앙 근처 */
-        right: 25px; /* 집의 약간 앞에 위치 */
-        transform: translateY(-50%) scale(0.5); /* 작게 시작 */
-    }
+  /* 애니메이션 키프레임 - 방향에 맞춰 translateX 값 조정 */
+  @keyframes shadowball-shoot {
+      0% { opacity: 0; transform: translateY(-50%) translateX(0) scale(0.5); }
+      10% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
+      80% { opacity: 1; transform: translateY(-50%) translateX(calc(-100% + 250px)) scale(1); } /* 집 위치까지 이동 (오른쪽에서 왼쪽으로) */
+      100% { opacity: 0; transform: translateY(-50%) translateX(calc(-100% + 200px)) scale(0.5); } /* 충돌 후 사라짐 */
+  }
+  .shadowball-active #shadowball-effect {
+      animation: shadowball-shoot 1s forwards;
+  }
 
-    /* 애니메이션 키프레임 */
-    @keyframes shadowball-shoot {
-        0% { opacity: 0; transform: translateY(-50%) translateX(0) scale(0.5); }
-        10% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
-        80% { opacity: 1; transform: translateY(-50%) translateX(calc(100% - 150px)) scale(1); } /* 집 위치까지 이동 */
-        100% { opacity: 0; transform: translateY(-50%) translateX(calc(100% - 100px)) scale(0.5); } /* 충돌 후 사라짐 */
-    }
-    .shadowball-active #shadowball-effect {
-        animation: shadowball-shoot 1s forwards;
-    }
+  @keyframes shield-activate {
+      0% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+      50% { opacity: 1; transform: translateY(-50%) scale(1); }
+      100% { opacity: 0; transform: translateY(-50%) scale(0.5); }
+  }
+  .shield-active #shield-effect {
+      animation: shield-activate 1s forwards;
+  }
 
-    @keyframes shield-activate {
-        0% { opacity: 0; transform: translateY(-50%) scale(0.5); }
-        50% { opacity: 1; transform: translateY(-50%) scale(1); }
-        100% { opacity: 0; transform: translateY(-50%) scale(0.5); }
-    }
-    .shield-active #shield-effect {
-        animation: shield-activate 1s forwards;
-    }
+  #house-status-text {
+      font-size: 20px;
+      margin-top: 10px;
+  }
+  #enemy-attack {
+    font-size: 18px;
+    min-height: 25px;
+  }
 
-    #house-status-text {
-        font-size: 20px;
-        margin-top: 10px;
-    }
-    #enemy-attack {
-      font-size: 18px;
-      min-height: 25px; /* 메시지 공간 확보 */
-    }
-
-    #scoreboard-table {
-      width: 80%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-    #scoreboard-table th, #scoreboard-table td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    #scoreboard-table th {
-      background-color: #f2f2f2;
-      color: #555;
-    }
-  </style>
-</head>
-<body>
-
-  <div id="start-screen">
-    <h1>하하 패밀리를 지켜라!</h1>
-    <div id="start-family-photo"></div> <p>우리 가족을 지키기 위해 영단어 퀴즈를 맞춰보자!</p>
-    <input id="name-input" type="text" placeholder="이름을 입력하세요" maxlength="10"/>
-    <br><br>
-    <button id="start-btn">게임 시작</button>
-  </div>
-
-  <div id="game-screen">
-    <h2 id="stage-info">Stage</h2>
-    
-    <div id="game-elements-container">
-        <div id="umbreon-container"></div> <div id="shadowball-effect"></div> <div id="house-container"></div> <div id="shield-effect"></div> <div id="house-explosion"></div> </div>
-
-    <div id="house-status-text">남은 기회: <span id="lives-count">5</span></div>
-    <div id="enemy-attack"></div>
-
-    <div id="question" style="font-size: 24px; margin: 20px 0;"></div>
-    <div id="options"></div>
-  </div>
-
-  <div id="end-screen">
-    <h2 id="final-msg"></h2>
-    <h3>최근 기록</h3>
-    <table id="scoreboard-table" border="1" cellpadding="5"></table>
-    <br>
-    <button id="restart-btn">다시 시작</button>
-  </div>
-
-  <script src="game.js"></script>
-</body>
-</html>
+  #scoreboard-table {
+    width: 80%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+  #scoreboard-table th, #scoreboard-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  #scoreboard-table th {
+    background-color: #f2f2f2;
+    color: #555;
+  }
+</style>
