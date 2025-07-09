@@ -39,7 +39,8 @@ const STAGES = [
   [
     {en:"go",ko:"가다"},{en:"come",ko:"오다"},{en:"see",ko:"보다"},{en:"look",ko:"쳐다보다"},{en:"eat",ko:"먹다"},
     {en:"drink",ko:"마시다"},{en:"run",ko:"달리다"},{en:"walk",ko:"걷다"},{en:"jump",ko:"뛰다"},{en:"sit",ko:"앉다"},
-    {en:"stand",ko:"서다"},{en:"read",ko:"읽다"},{en:"write",co:"쓰다"},{en:"play",ko:"놀다"},{en:"sing",ko:"노래하다"},
+    {en:"stand",ko:"서다"},{en:"read",ko:"읽다"},{en:"write",ko:"쓰다"}, // 'co'를 'ko'로 수정
+    {en:"play",ko:"놀다"},{en:"sing",ko:"노래하다"},
     {en:"dance",ko:"춤추다"},{en:"sleep",ko:"자다"},{en:"smile",ko:"웃다"},{en:"cry",ko:"울다"},{en:"help",ko:"돕다"}
   ],
   /* ---------- Stage 7 ---------- */
@@ -47,14 +48,16 @@ const STAGES = [
     {en:"big",ko:"큰"},{en:"small",ko:"작은"},{en:"tall",ko:"키큰"},{en:"short",ko:"키작은"},{en:"long",ko:"긴"},
     {en:"fast",ko:"빠른"},{en:"slow",ko:"느린"},{en:"hot",ko:"뜨거운"},{en:"cold",ko:"차가운"},{en:"warm",ko:"따뜻한"},
     {en:"happy",ko:"행복한"},{en:"sad",ko:"슬픈"},{en:"good",ko:"좋은"},{en:"bad",ko:"나쁜"},{en:"easy",ko:"쉬운"},
-    {en:"hard",ko:"어려운"},{en:"clean",ko:"깨끗한"},{en:"dirty",:"더러운"},{en:"new",ko:"새로운"},{en:"old",ko:"낡은"}
+    {en:"hard",ko:"어려운"},{en:"clean",ko:"깨끗한"},{en:"dirty",ko:"더러운"}, // 'ko:' 추가
+    {en:"new",ko:"새로운"},{en:"old",ko:"낡은"}
   ],
   /* ---------- Stage 8 ---------- */
   [
     {en:"home",ko:"집"},{en:"park",ko:"공원"},{en:"zoo",ko:"동물원"},{en:"farm",ko:"농장"},{en:"bank",ko:"은행"},
     {en:"hospital",ko:"병원"},{en:"store",ko:"가게"},{en:"market",ko:"시장"},{en:"church",ko:"교회"},{en:"post office",ko:"우체국"},
     {en:"airport",ko:"공항"},{en:"bus",ko:"버스"},{en:"station",ko:"역"},{en:"street",ko:"거리"},{en:"road",ko:"도로"},
-    {en:"bridge",ko:"다리"},{en:"river",ko:"강"},{en:"mountain",:"산"},{en:"beach",ko:"해변"},{en:"playground",ko:"놀이터"}
+    {en:"bridge",ko:"다리"},{en:"river",ko:"강"},{en:"mountain",ko:"산"}, // 'ko:' 추가
+    {en:"beach",ko:"해변"},{en:"playground",ko:"놀이터"}
   ],
   /* ---------- Stage 9 ---------- */
   [
