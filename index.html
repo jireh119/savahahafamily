@@ -30,8 +30,8 @@
     h1, h2, h3 { color: #2c3e50; }
 
     #start-family-photo { /* 시작 화면 가족 사진 */
-        width: 300px; /* 2배 크기 */
-        height: 200px; /* 2배 크기 */
+        width: 300px; /* 2배 크기 유지 */
+        height: 200px; /* 2배 크기 유지 */
         background-image: url('family.jpg');
         background-size: cover;
         background-position: center;
@@ -96,7 +96,7 @@
       position: relative;
       width: 100%;
       max-width: 600px;
-      height: 400px; /* 더 커진 요소들을 위해 높이 증가 */
+      height: 267px; /* 줄어든 크기에 맞춰 조정 (400px * 2/3) */
       margin: 20px auto;
       display: flex;
       align-items: center;
@@ -108,8 +108,8 @@
 
     #umbreon-container {
         position: relative;
-        width: 240px; /* 블래키 2배 크기 */
-        height: 240px; /* 블래키 2배 크기 */
+        width: 160px; /* 블래키 2/3 크기 (240px * 2/3) */
+        height: 160px; /* 블래키 2/3 크기 (240px * 2/3) */
         background-image: url('umbreon_attack.png');
         background-size: contain;
         background-repeat: no-repeat;
@@ -122,23 +122,25 @@
 
     #shadowball-effect {
         position: absolute;
-        width: 140px; /* 섀도우볼 크기 (비율 유지) */
-        height: 140px; /* 섀도우볼 크기 (비율 유지) */
+        width: 93px; /* 섀도우볼 크기 (140px * 2/3) */
+        height: 93px; /* 섀도우볼 크기 (140px * 2/3) */
         background-image: url('shadow_ball.png');
         background-size: contain;
         background-repeat: no-repeat;
-        opacity: 0;
+        opacity: 0; /* 초기에는 투명하게 */
         z-index: 5;
         top: 50%;
-        /* 블래키가 오른쪽에 있으므로, 오른쪽에서 왼쪽으로 날아가야 함 */
-        right: 150px; /* 블래키 이미지의 중앙에서 시작하도록 조정 */
-        transform: translateY(-50%); /* 초기 위치 조정 */
+        right: 100px; /* 블래키 이미지의 중앙에서 시작하도록 조정 (150px * 2/3) */
+        transform: translateY(-50%); /* Y축 중앙 정렬 */
+        animation-duration: 1s; /* 애니메이션 시간 */
+        animation-timing-function: ease-out; /* 움직임 속도 */
+        animation-fill-mode: forwards; /* 애니메이션 완료 후 마지막 상태 유지 */
     }
 
     #house-container {
       position: relative;
-      width: 400px; /* 집 2배 크기 */
-      height: 400px; /* 집 2배 크기 */
+      width: 267px; /* 집 2/3 크기 (400px * 2/3) */
+      height: 267px; /* 집 2/3 크기 (400px * 2/3) */
       background-image: url('house_intact.png');
       background-size: contain;
       background-repeat: no-repeat;
@@ -162,18 +164,20 @@
 
     #shield-effect {
         position: absolute;
-        width: 300px; /* 방어막 크기 (비율 유지) */
-        height: 300px; /* 방어막 크기 (비율 유지) */
+        width: 200px; /* 방어막 크기 (300px * 2/3) */
+        height: 200px; /* 방어막 크기 (300px * 2/3) */
         background-image: url('shield.png');
         background-size: contain;
         background-repeat: no-repeat;
         background-position: center;
-        opacity: 0;
+        opacity: 0; /* 초기에는 투명하게 */
         z-index: 6;
         top: 50%;
-        /* 집이 왼쪽에 있으므로, 집의 중앙 근처에 위치하도록 조정 */
-        left: 50px; /* 집의 약간 앞에 위치 */
+        left: 33px; /* 집의 약간 앞에 위치 (50px * 2/3) */
         transform: translateY(-50%) scale(0.5); /* 작게 시작 */
+        animation-duration: 1s; /* 애니메이션 시간 */
+        animation-timing-function: ease-out;
+        animation-fill-mode: forwards;
     }
 
     /* 애니메이션 키프레임 - 방향에 맞춰 translateX 값 조정 */
@@ -181,11 +185,11 @@
         0% { opacity: 0; transform: translateY(-50%) translateX(0) scale(0.5); }
         10% { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); }
         /* 섀도우볼이 블래키(오른쪽)에서 집(왼쪽)으로 날아가도록 - 음수 값 사용 */
-        80% { opacity: 1; transform: translateY(-50%) translateX(calc(-100% - 150px)) scale(1); } /* 집 위치까지 이동 */
-        100% { opacity: 0; transform: translateY(-50%) translateX(calc(-100% - 100px)) scale(0.5); } /* 충돌 후 사라짐 */
+        80% { opacity: 1; transform: translateY(-50%) translateX(calc(-100% - 100px)) scale(1); } /* 집 위치까지 이동 (150px * 2/3) */
+        100% { opacity: 0; transform: translateY(-50%) translateX(calc(-100% - 67px)) scale(0.5); } /* 충돌 후 사라짐 (100px * 2/3) */
     }
     .shadowball-active #shadowball-effect {
-        animation: shadowball-shoot 1s forwards;
+        animation-name: shadowball-shoot; /* 애니메이션 이름 지정 */
     }
 
     @keyframes shield-activate {
@@ -194,7 +198,7 @@
         100% { opacity: 0; transform: translateY(-50%) scale(0.5); }
     }
     .shield-active #shield-effect {
-        animation: shield-activate 1s forwards;
+        animation-name: shield-activate; /* 애니메이션 이름 지정 */
     }
 
     #house-status-text {
